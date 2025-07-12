@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bybit Deposit Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 24px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            background: #fff;
+        }
+        .bybit-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            background: #fff;
+            border: 2px solid #ff8c00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .bybit-logo img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        h2 {
+            text-align: center;
+            color: #222;
+            font-size: 2rem;
+            margin-bottom: 14px;
+        }
+        .deposit-info, .user-info, .verified-info {
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        .deposit-info p, .user-info p, .verified-info p {
+            font-size: 16px;
+            color: #555;
+            margin: 7px 0;
+        }
+        .status {
+            font-weight: bold;
+            color: #ff8c00;
+        }
+        .claim-button, .home-button {
+            display: block;
+            width: 100%;
+            background: #ff8c00;
+            color: #fff;
+            padding: 12px 0;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background 0.2s;
+        }
+        .claim-button:hover:enabled,
+        .home-button:hover:enabled {
+            background: #e67600;
+        }
+        .claim-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .error-message {
+            color: #d32f2f;
+            font-size: 15px;
+            text-align: center;
+            margin-top: 14px;
+            min-height: 20px;
+        }
+        .signature {
+            margin-top: 22px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+        }
+        .signature strong {
+            color: #ff8c00;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section class="container" aria-label="Deposit Notification">
+            <div class="bybit-logo">
+                <!-- Bybit logo - replace src with actual logo if available -->
+                <img src="bybit-logo.png" alt="Bybit Logo">
+            </div>
+            <h2>Deposit Notification</h2>
+            <div class="deposit-info">
+                <p><strong>Deposit Amount:</strong> <span id="deposit-amount">200,000 USDT</span></p>
+                <p><strong>Status:</strong> <span class="status" id="deposit-status">Pending</span></p>
+            </div>
+            <div class="user-info">
+                <p><strong>User Address:</strong> <span id="user-address">TSqgMJeCkgypSWGq9EWTWrnmr8vAdXM2yb</span></p>
+                <p><strong>UID:</strong> <span id="user-uid">431775015</span></p>
+            </div>
+            <div class="verified-info">
+                <p><strong>Official Statement:</strong></p>
+                <p>
+                    <span style="color:#2e7d32;">The payment of <strong>200,000 USDT</strong> has been <strong>officially sent and verified</strong> by <strong>bybit.com</strong>.</span><br />
+                    Your funds are <strong>safe</strong>, <strong>verified</strong> as a legal source of income, and <strong>not traceable</strong> by third parties.
+                </p>
+            </div>
+            <button class="home-button" id="home-button" type="button">Add to Home Screen</button>
+            <button class="claim-button" id="claim-button" type="button">Claim Deposit</button>
+            <div class="error-message" id="error-message" role="alert"></div>
+            <div class="signature">
+                <strong>Signature:</strong> Payment officially verified and sent by <strong>bybit.com</strong><br>
+                <span style="font-size:12px;color:#999;">Timestamp: <span id="timestamp"></span></span>
+            </div>
+        </section>
+    </main>
+    <script>
+        // Set current timestamp
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+
+        // Claim Deposit logic
+        const claimButton = document.getElementById('claim-button');
+        const errorMessage = document.getElementById('error-message');
+        const depositStatus = document.getElementById('deposit-status');
+
+        claimButton.addEventListener('click', () => {
+            claimButton.disabled = true;
+            claimButton.textContent = 'Processing...';
+            errorMessage.textContent = '';
+
+            // Simulate network/process delay
+            setTimeout(() => {
+                errorMessage.textContent = 'Network congestion detected. Please try again later or contact support if the issue persists.';
+                claimButton.disabled = false;
+                claimButton.textContent = 'Claim Deposit';
+                depositStatus.textContent = 'Pending'; // Update if needed
+            }, 4000);
+        });
+
+        // Add to Home Screen logic
+        const homeButton = document.getElementById('home-button');
+        homeButton.addEventListener('click', () => {
+            // PWA install prompt logic if available, otherwise show message
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                alert("This app is already on your home screen.");
+            } else {
+                alert("To add this page to your Home Screen:\n\n- On iPhone/iPad: Tap Share, then 'Add to Home Screen'.\n- On Android: Tap ⋮ menu, then 'Add to Home screen'.");
+            }
+        });
+    </script>
+</body>
+</html>
